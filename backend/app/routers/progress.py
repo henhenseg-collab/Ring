@@ -76,10 +76,12 @@ async def get_progress(
 
     # Streak: days in last 30 with completed sessions
     thirty_ago = date.today() - timedelta(days=30)
+    from datetime import datetime as dt
+    thirty_ago_dt = dt(thirty_ago.year, thirty_ago.month, thirty_ago.day)
     sessions_result = await db.execute(
         select(Session).where(
             Session.user_id == current_user.id,
-            Session.started_at >= thirty_ago.isoformat(),
+            Session.started_at >= thirty_ago_dt,
         )
     )
     sessions = sessions_result.scalars().all()
