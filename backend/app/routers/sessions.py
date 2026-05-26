@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -70,7 +70,7 @@ async def complete_session(
     if not session:
         raise HTTPException(404, "Session not found")
 
-    session.completed_at = datetime.now(timezone.utc)
+    session.completed_at = datetime.utcnow()
     session.cards_reviewed = body.cards_reviewed
     session.score = body.score
     await db.commit()

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -76,7 +76,7 @@ async def grade_card(
     prog.ease_factor = result.ease_factor
     prog.due_date = result.due_date
     prog.repetitions = result.repetitions
-    prog.last_reviewed = datetime.now(timezone.utc)
+    prog.last_reviewed = datetime.utcnow()
     await db.commit()
 
     return GradeResponse(

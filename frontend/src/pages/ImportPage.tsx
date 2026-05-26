@@ -47,7 +47,11 @@ export default function ImportPage() {
       toast.success(`Generated ${res.data.card_count} cards!`)
       navigate(`/quiz/${res.data.topic_id}`)
     } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? 'Generation failed')
+      const detail = err.response?.data?.detail ?? ''
+      const msg = detail.includes('Claude API') || err.response?.status === 502
+        ? 'Claude API unavailable — add ANTHROPIC_API_KEY to .env and restart the backend'
+        : detail || 'Generation failed'
+      toast.error(msg, { duration: 6000 })
     } finally {
       setLoading(false)
     }
