@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Recall — AI Study App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --purple: #534AB7;
+    --violet: #7F77DD;
+    --lavender: #EEEDFE;
+    --dark: #2C2C2A;
+    --light: #F1EFE8;
+    --card-bg: #fff;
+    --text: #111;
+    --text-2: #555;
+    --border: #e5e5e5;
+    --hover: #f4f4f4;
+  }
+  .dark {
+    --card-bg: #1e1e1c;
+    --text: #f0efe8;
+    --text-2: #aaa;
+    --border: #333;
+    --hover: #2a2a28;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--light); color: var(--text); transition: background .2s, color .2s; min-height: 100vh; }
+  body.dark { background: var(--dark); }
+  h1,h2,h3,h4 { font-family: 'Inter', sans-serif; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(241,239,232,.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .dark nav { background: rgba(44,44,42,.85); }
+  .nav-inner { max-width: 960px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
+  .logo-text { font-family: 'Inter'; font-weight: 700; font-size: 17px; color: var(--purple); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 10px; border: none; background: none; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-2); transition: background .15s, color .15s; }
+  .nav-btn:hover { background: var(--hover); color: var(--text); }
+  .nav-btn.active { background: var(--lavender); color: var(--purple); }
+  .dark .nav-btn.active { background: rgba(83,74,183,.2); color: var(--violet); }
+  .nav-actions { display: flex; gap: 4px; }
+  .icon-btn { width: 34px; height: 34px; border-radius: 10px; border: none; background: none; cursor: pointer; color: var(--text-2); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+  .icon-btn:hover { background: var(--hover); }
+
+  /* LAYOUT */
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
+
+  /* AUTH */
+  .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .auth-card { background: var(--card-bg); border-radius: 20px; padding: 32px; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,.08); border: 1px solid var(--border); }
+  .auth-logo { text-align: center; margin-bottom: 24px; }
+  .auth-logo-icon { width: 64px; height: 64px; background: var(--purple); border-radius: 18px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(83,74,183,.4); }
+  .tab-toggle { display: flex; background: var(--hover); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 24px; }
+  .tab-toggle button { flex: 1; padding: 7px; border: none; background: none; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-2); transition: all .15s; }
+  .tab-toggle button.active { background: var(--card-bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 10px 14px; border-radius: 12px; border: 2px solid var(--border); background: var(--hover); color: var(--text); font-size: 14px; outline: none; transition: border .15s; font-family: inherit; }
+  .field input:focus, .field textarea:focus { border-color: var(--purple); }
+  .field textarea { resize: none; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; cursor: pointer; font-family: inherit; font-weight: 500; border-radius: 12px; transition: all .15s; }
+  .btn-primary { background: var(--purple); color: #fff; box-shadow: 0 2px 8px rgba(83,74,183,.35); }
+  .btn-primary:hover { background: var(--violet); box-shadow: 0 4px 12px rgba(83,74,183,.45); }
+  .btn-primary:active { transform: scale(.97); }
+  .btn-secondary { background: var(--lavender); color: var(--purple); }
+  .dark .btn-secondary { background: rgba(83,74,183,.2); color: var(--violet); }
+  .btn-secondary:hover { opacity: .85; }
+  .btn-ghost { background: none; color: var(--text-2); }
+  .btn-ghost:hover { background: var(--hover); }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-md { padding: 9px 18px; font-size: 14px; }
+  .btn-lg { padding: 13px 24px; font-size: 15px; width: 100%; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* CARDS */
+  .card { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+
+  /* HOME */
+  .section-title { font-family: 'Inter'; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .topic-card { background: var(--card-bg); border-radius: 20px; padding: 20px; border: 1px solid var(--border); cursor: pointer; transition: all .2s; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .topic-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); border-color: var(--violet); }
+  .topic-name { font-family: 'Inter'; font-weight: 600; font-size: 15px; color: var(--text); margin-bottom: 3px; }
+  .topic-meta { font-size: 12px; color: var(--text-2); margin-bottom: 12px; }
+  .due-badge { background: var(--lavender); color: var(--purple); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; float: right; }
+  .dark .due-badge { background: rgba(83,74,183,.2); color: var(--violet); }
+  .mastery-bar-wrap { margin-bottom: 4px; }
+  .mastery-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
+  .mastery-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .mastery-fill { height: 100%; border-radius: 99px; background: var(--purple); transition: width .6s; }
+
+  /* STREAK CALENDAR */
+  .streak-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .streak-day { width: 22px; height: 22px; border-radius: 5px; background: var(--border); transition: background .2s; }
+  .streak-day.active { background: var(--purple); }
+  .dark .streak-day.active { background: var(--violet); }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media(min-width:600px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
+  .stat-card { background: var(--card-bg); border-radius: 16px; padding: 16px; border: 1px solid var(--border); }
+  .stat-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 15px; }
+  .stat-value { font-family: 'Inter'; font-weight: 700; font-size: 22px; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--text-2); }
+
+  /* QUIZ */
+  .quiz-wrap { max-width: 560px; margin: 0 auto; }
+  .quiz-progress-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+  .quiz-progress-fill { height: 100%; background: var(--purple); border-radius: 99px; transition: width .4s ease; }
+  .quiz-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 24px; }
+  .back-link { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 4px; }
+  .back-link:hover { color: var(--purple); }
+
+  /* FLASHCARD FLIP */
+  .flip-scene { width: 100%; perspective: 1000px; margin-bottom: 24px; }
+  .flip-card { position: relative; width: 100%; min-height: 220px; transform-style: preserve-3d; transition: transform .5s ease; cursor: pointer; }
+  .flip-card.flipped { transform: rotateY(180deg); }
+  .flip-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; padding: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 220px; }
+  .flip-front { background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+  .flip-back { background: var(--lavender); border: 1px solid rgba(127,119,221,.3); transform: rotateY(180deg); }
+  .dark .flip-back { background: rgba(83,74,183,.1); }
+  .card-label { font-size: 11px; font-weight: 600; color: var(--purple); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px; }
+  .dark .card-label { color: var(--violet); }
+  .card-question { font-size: 18px; font-weight: 500; color: var(--text); line-height: 1.5; }
+  .card-hint { font-size: 12px; color: var(--text-2); margin-top: 20px; }
+  .card-explanation { font-size: 12px; color: var(--text-2); margin-top: 12px; font-style: italic; }
+
+  /* GRADE BUTTONS */
+  .grade-row { display: flex; gap: 10px; justify-content: center; }
+
+  /* MULTIPLE CHOICE */
+  .mc-options { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+  .mc-option { width: 100%; text-align: left; padding: 14px 18px; border-radius: 14px; border: 2px solid var(--border); background: var(--card-bg); color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; }
+  .mc-option:hover:not(:disabled) { border-color: var(--purple); background: rgba(238,237,254,.4); }
+  .mc-option.correct { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+  .dark .mc-option.correct { background: rgba(34,197,94,.1); color: #4ade80; }
+  .mc-option.wrong { border-color: #ef4444; background: #fef2f2; color: #dc2626; }
+  .dark .mc-option.wrong { background: rgba(239,68,68,.1); color: #f87171; }
+  .mc-option.dimmed { border-color: transparent; opacity: .4; }
+  .mc-option:disabled { cursor: default; }
+
+  /* FREE RESPONSE */
+  .feedback-box { padding: 14px 16px; border-radius: 14px; border: 2px solid; font-size: 14px; margin-bottom: 12px; }
+  .feedback-pass { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+  .dark .feedback-pass { background: rgba(34,197,94,.1); color: #4ade80; }
+  .feedback-fail { border-color: #f97316; background: #fff7ed; color: #c2410c; }
+  .dark .feedback-fail { background: rgba(249,115,22,.1); color: #fb923c; }
+
+  /* EXPLAIN PANEL */
+  .explain-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  @media(min-width:640px) { .explain-overlay { align-items: center; justify-content: flex-end; padding: 16px; } }
+  .explain-overlay.open { display: flex; }
+  .explain-panel { background: var(--card-bg); border-radius: 20px 20px 0 0; width: 100%; max-width: 400px; height: 70vh; display: flex; flex-direction: column; border: 1px solid var(--border); box-shadow: 0 -8px 40px rgba(0,0,0,.15); }
+  @media(min-width:640px) { .explain-panel { border-radius: 20px; height: 78vh; } }
+  .explain-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .explain-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; }
+  .msg-user { background: var(--purple); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg-assistant { background: var(--hover); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .explain-input-row { padding: 10px 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .explain-input { flex: 1; padding: 8px 12px; border-radius: 10px; border: 2px solid var(--border); background: var(--hover); color: var(--text); font-size: 13px; outline: none; font-family: inherit; }
+  .explain-input:focus { border-color: var(--purple); }
+
+  /* IMPORT */
+  .mode-tabs { display: flex; background: var(--hover); border-radius: 14px; padding: 4px; gap: 4px; margin-bottom: 20px; }
+  .mode-tab { flex: 1; padding: 8px; border: none; background: none; border-radius: 10px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-2); transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .mode-tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+  .upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 40px; text-align: center; cursor: pointer; transition: border-color .15s; }
+  .upload-zone:hover { border-color: var(--purple); }
+  .info-box { background: var(--lavender); border-radius: 14px; padding: 14px 16px; display: flex; gap: 10px; font-size: 13px; color: var(--purple); }
+  .dark .info-box { background: rgba(83,74,183,.1); color: var(--violet); }
+
+  /* SESSION COMPLETE */
+  .session-complete { text-align: center; padding: 48px 16px; }
+  .session-emoji { font-size: 56px; margin-bottom: 16px; }
+
+  /* WEAK SPOTS */
+  .weak-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .weak-item:last-child { border-bottom: none; }
+  .weak-num { width: 22px; height: 22px; border-radius: 50%; background: #fff3e0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #e65100; flex-shrink: 0; }
+  .dark .weak-num { background: rgba(249,115,22,.15); color: #fb923c; }
+  .weak-q { font-size: 13px; color: var(--text); flex: 1; }
+  .weak-ef { font-size: 12px; color: #f97316; font-weight: 600; flex-shrink: 0; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--purple); color: #fff; padding: 12px 18px; border-radius: 14px; font-size: 14px; font-weight: 500; z-index: 999; animation: slideUp .3s ease; max-width: 300px; box-shadow: 0 4px 20px rgba(83,74,183,.4); }
+  @keyframes slideUp { from { opacity:0; transform: translateY(12px) } to { opacity:1; transform: translateY(0) } }
+
+  /* UTILS */
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .mb-1 { margin-bottom: 4px; }
+  .mb-2 { margin-bottom: 8px; }
+  .mb-3 { margin-bottom: 12px; }
+  .mb-4 { margin-bottom: 16px; }
+  .mb-6 { margin-bottom: 24px; }
+  .mb-8 { margin-bottom: 32px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-muted { color: var(--text-2); }
+  .text-purple { color: var(--purple); }
+  .dark .text-purple { color: var(--violet); }
+  .font-bold { font-weight: 700; }
+  .font-semibold { font-weight: 600; }
+  .w-full { width: 100%; }
+  .p-5 { padding: 20px; }
+  .rounded-xl { border-radius: 16px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">
+          <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+            <text x="4" y="22" font-family="Inter" font-size="20" font-weight="700" fill="white">R</text>
+            <circle cx="22" cy="20" r="7" fill="#7F77DD"/>
+            <path d="M19.5 20l2 2 3-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 style="font-size:22px;color:var(--text)">Recall</h1>
+        <p class="text-sm text-muted mt-2">AI-powered spaced repetition</p>
+      </div>
+      <div class="tab-toggle">
+        <button class="active" id="tab-login" onclick="setAuthTab('login')">Sign In</button>
+        <button id="tab-register" onclick="setAuthTab('register')">Register</button>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" value="demo@recall.app" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" placeholder="••••••••" value="password123" />
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="goHome()" style="margin-top:4px">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="nav-inner">
+      <a class="logo" onclick="showScreen('home')">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="8" fill="#534AB7"/>
+          <text x="5" y="21" font-family="Inter" font-size="17" font-weight="700" fill="white">R</text>
+          <circle cx="21" cy="20" r="6" fill="#7F77DD"/>
+          <path d="M18.5 20l2 2 3-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">Recall</span>
+      </a>
+      <div class="nav-links">
+        <button class="nav-btn active" id="nav-home" onclick="showScreen('home')">🏠 <span>Home</span></button>
+        <button class="nav-btn" id="nav-import" onclick="showScreen('import')">＋ <span>Import</span></button>
+        <button class="nav-btn" id="nav-progress" onclick="showScreen('progress')">📊 <span>Progress</span></button>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn" onclick="toggleDark()" title="Toggle dark mode" id="dark-btn">🌙</button>
+        <button class="icon-btn" onclick="logout()" title="Log out">↩</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active page">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 style="font-size:24px;font-weight:700;color:var(--text)">Your Topics</h1>
+        <p class="text-sm text-muted mt-2">2 topics · 19 cards</p>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showScreen('import')">＋ New Topic</button>
+    </div>
+
+    <!-- Streak -->
+    <div class="card p-5 mb-6">
+      <p class="section-title mb-3">Last 30 Days</p>
+      <div class="streak-grid" id="streak-grid"></div>
+    </div>
+
+    <!-- Topics -->
+    <div class="topic-grid mb-8" id="topic-grid"></div>
+
+    <!-- Weak spots -->
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-4">
+        <span>📉</span>
+        <p class="section-title" style="margin:0">Weak Spots</p>
+      </div>
+      <div id="weak-spots"></div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" class="screen page">
+    <div class="quiz-wrap">
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress-fill"></div></div>
+      <div class="quiz-progress-label">
+        <button class="back-link" onclick="showScreen('home')">← Exit</button>
+        <span id="quiz-counter"></span>
+      </div>
+      <div id="quiz-content"></div>
+      <div style="text-align:center;margin-top:20px">
+        <button class="btn btn-ghost btn-sm text-purple" onclick="openExplain()">💡 Explain this</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <div id="screen-import" class="screen page">
+    <div style="max-width:560px;margin:0 auto">
+      <h1 style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px">New Topic</h1>
+      <p class="text-sm text-muted mb-6">Claude generates 15 study cards automatically</p>
+      <div class="card p-5">
+        <div class="field">
+          <label>Topic Name</label>
+          <input type="text" id="import-topic-name" placeholder="e.g. React Hooks, French Revolution…" />
+        </div>
+        <div class="mode-tabs mb-4">
+          <button class="mode-tab active" onclick="setImportMode('notes',this)">📝 Paste Notes</button>
+          <button class="mode-tab" onclick="setImportMode('pdf',this)">📄 Upload PDF</button>
+          <button class="mode-tab" onclick="setImportMode('topic',this)">✨ Topic Only</button>
+        </div>
+        <div id="import-notes-panel">
+          <div class="field">
+            <label>Paste your notes</label>
+            <textarea rows="7" placeholder="Paste your lecture notes, textbook excerpts, or any study material here…"></textarea>
+          </div>
+        </div>
+        <div id="import-pdf-panel" style="display:none">
+          <div class="upload-zone" onclick="showToast('PDF parsing is a backend feature — available when running the full stack')">
+            <div style="font-size:32px;margin-bottom:8px">📄</div>
+            <p class="text-sm text-muted">Click to upload PDF</p>
+            <p class="text-xs text-muted mt-2">Max 20MB</p>
+          </div>
+        </div>
+        <div id="import-topic-panel" style="display:none">
+          <div class="info-box">
+            <span>✨</span>
+            <p>Claude will generate questions from its knowledge base about your topic.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg" style="margin-top:20px" onclick="simulateGenerate()">Generate Study Cards</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="screen-progress" class="screen page">
+    <h1 style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px">Progress</h1>
+    <div class="stats-row mb-6">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--lavender)">📚</div>
+        <div class="stat-value">19</div>
+        <div class="stat-label">Total Cards</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#dcfce7">🏅</div>
+        <div class="stat-value">6</div>
+        <div class="stat-label">Mastered</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--lavender)">📈</div>
+        <div class="stat-value">31.6%</div>
+        <div class="stat-label">Mastery</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fff3e0">🔥</div>
+        <div class="stat-value">10</div>
+        <div class="stat-label">Sessions (30d)</div>
+      </div>
+    </div>
+    <div class="card p-5 mb-6">
+      <p class="section-title mb-2">Overall Mastery</p>
+      <div class="mastery-bar" style="height:14px;border-radius:8px"><div class="mastery-fill" style="width:31.6%;border-radius:8px"></div></div>
+      <div class="flex justify-between text-xs text-muted mt-2"><span>6 mastered</span><span>19 total</span></div>
+    </div>
+    <div class="card p-5 mb-6">
+      <p class="section-title mb-3">Last 30 Days</p>
+      <div class="streak-grid" id="streak-grid-2"></div>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-4"><span>📉</span><p class="section-title" style="margin:0">Needs Work</p></div>
+      <div id="weak-spots-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPLAIN PANEL -->
+<div class="explain-overlay" id="explain-overlay" onclick="closeExplainIfBg(event)">
+  <div class="explain-panel">
+    <div class="explain-header">
+      <div>
+        <p style="font-size:13px;font-weight:600;color:var(--text)">Tutor Explanation</p>
+        <p class="text-xs text-muted" id="explain-card-title"></p>
+      </div>
+      <button class="icon-btn" onclick="closeExplain()">✕</button>
+    </div>
+    <div class="explain-messages" id="explain-messages"></div>
+    <div class="explain-input-row">
+      <input class="explain-input" id="explain-input" placeholder="Ask a follow-up…" onkeydown="if(event.key==='Enter')sendExplain()" />
+      <button class="btn btn-primary btn-sm" onclick="sendExplain()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const TOPICS = [
+  { id:1, name:'React Hooks', cards:15, mastery:13.3, due:11, lastStudied:'2026-05-26' },
+  { id:2, name:'Python Basics', cards:4, mastery:100, due:0, lastStudied:'2026-05-24' },
+];
+
+const WEAK = [
+  { q:'What is a React Hook?', ef:1.40, topic:'React Hooks' },
+  { q:'What does useState return?', ef:1.55, topic:'React Hooks' },
+  { q:'When does useEffect run?', ef:1.70, topic:'React Hooks' },
+  { q:'Which hook caches an expensive computation?', ef:1.85, topic:'React Hooks' },
+  { q:'How do you update state based on previous value?', ef:2.00, topic:'React Hooks' },
+];
+
+const STREAK_ACTIVE = [
+  '2026-05-11','2026-05-12','2026-05-16','2026-05-18',
+  '2026-05-19','2026-05-21','2026-05-22','2026-05-24',
+  '2026-05-25','2026-05-26',
+];
+
+const CARDS = [
+  { id:1, type:'flashcard', q:'What is a React Hook?', a:'A function that lets you use state and other React features in function components.', expl:"Hooks start with 'use' and were introduced in React 16.8." },
+  { id:2, type:'flashcard', q:'What does useState return?', a:'An array of [currentValue, setterFunction].', expl:'Destructure like: const [count, setCount] = useState(0).' },
+  { id:3, type:'flashcard', q:'When does useEffect run?', a:'After every render by default; only when dependencies change if you pass a dep array.', expl:'An empty [] array means it runs once on mount.' },
+  { id:4, type:'multiple_choice', q:'Which hook should you use to cache an expensive computation?', a:'useMemo', expl:'useMemo memoizes a value; useCallback memoizes a function.',
+    options:['useRef','useMemo','useReducer','useContext'] },
+  { id:5, type:'multiple_choice', q:'What is the correct way to update state that depends on the previous value?', a:'setState(prev => prev + 1)', expl:'Functional updates always read the latest state.',
+    options:['setState(state + 1)','setState(prev => prev + 1)','state = state + 1','setState(state++)'] },
+  { id:6, type:'multiple_choice', q:'Which hook lets you subscribe to a shared value across the component tree?', a:'useContext', expl:'useContext reads the nearest Provider value.',
+    options:['useState','useGlobal','useContext','useShared'] },
+  { id:7, type:'free_response', q:'Explain the difference between useCallback and useMemo.', a:'useCallback memoizes a function reference; useMemo memoizes a computed value. Both take a dependency array.' },
+];
+
+// ─── STATE ───────────────────────────────────────────────────
+let dark = false;
+let currentScreen = 'home';
+let quizCards = [];
+let quizIndex = 0;
+let quizCorrect = 0;
+let quizFlipped = false;
+let mcSelected = null;
+let frResult = null;
+let explainOpen = false;
+let explainMessages = [];
+let explainStreaming = false;
+
+// ─── INIT ────────────────────────────────────────────────────
+function init() {
+  buildStreakGrid('streak-grid');
+  buildStreakGrid('streak-grid-2');
+  buildTopics();
+  buildWeak('weak-spots');
+  buildWeak('weak-spots-2');
+}
+
+function buildStreakGrid(id) {
+  const el = document.getElementById(id);
+  const activeSet = new Set(STREAK_ACTIVE);
+  const today = new Date('2026-05-26');
+  for (let i=29; i>=0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate()-i);
+    const key = d.toISOString().split('T')[0];
+    const div = document.createElement('div');
+    div.className = 'streak-day' + (activeSet.has(key) ? ' active' : '');
+    div.title = key;
+    el.appendChild(div);
+  }
+}
+
+function buildTopics() {
+  const grid = document.getElementById('topic-grid');
+  grid.innerHTML = '';
+  TOPICS.forEach(t => {
+    const color = t.mastery >= 80 ? '#22c55e' : t.mastery >= 50 ? '#7F77DD' : '#534AB7';
+    grid.innerHTML += `
+      <div class="topic-card" onclick="startQuiz(${t.id})">
+        <div class="flex justify-between items-center mb-1">
+          <div class="topic-name">${t.name}</div>
+          ${t.due > 0 ? `<span class="due-badge">${t.due} due</span>` : ''}
+        </div>
+        <div class="topic-meta">${t.cards} cards${t.lastStudied ? ' · last studied '+t.lastStudied : ''}</div>
+        <div class="mastery-label"><span>Mastery</span><span>${t.mastery}%</span></div>
+        <div class="mastery-bar"><div class="mastery-fill" style="width:${t.mastery}%;background:${color}"></div></div>
+      </div>`;
+  });
+}
+
+function buildWeak(id) {
+  const el = document.getElementById(id);
+  el.innerHTML = WEAK.map((w,i) => `
+    <div class="weak-item">
+      <div class="weak-num">${i+1}</div>
+      <div class="flex-1"><div class="weak-q">${w.q}</div><div class="text-xs text-muted">${w.topic}</div></div>
+      <div class="weak-ef">EF ${w.ef.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────
+function goHome() {
+  document.getElementById('screen-auth').classList.remove('active');
+  document.getElementById('app').style.display = 'block';
+  showScreen('home');
+  init();
+}
+
+function logout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('screen-auth').classList.add('active');
+}
+
+function showScreen(name) {
+  document.querySelectorAll('#app .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  currentScreen = name;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-'+name);
+  if (nb) nb.classList.add('active');
+}
+
+// ─── DARK MODE ───────────────────────────────────────────────
+function toggleDark() {
+  dark = !dark;
+  document.body.classList.toggle('dark', dark);
+  document.getElementById('dark-btn').textContent = dark ? '☀️' : '🌙';
+}
+
+// ─── AUTH TABS ───────────────────────────────────────────────
+function setAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────
+function startQuiz(topicId) {
+  quizCards = [...CARDS];
+  quizIndex = 0;
+  quizCorrect = 0;
+  showScreen('quiz');
+  renderQuizCard();
+}
+
+function renderQuizCard() {
+  if (quizIndex >= quizCards.length) { showSessionComplete(); return; }
+  const card = quizCards[quizIndex];
+  const pct = (quizIndex / quizCards.length) * 100;
+  document.getElementById('quiz-progress-fill').style.width = pct + '%';
+  document.getElementById('quiz-counter').textContent = (quizIndex+1) + ' of ' + quizCards.length;
+  document.getElementById('explain-card-title').textContent = card.q.substring(0,50);
+  quizFlipped = false; mcSelected = null; frResult = null;
+
+  let html = '';
+  if (card.type === 'flashcard') html = renderFlashcard(card);
+  else if (card.type === 'multiple_choice') html = renderMC(card);
+  else html = renderFR(card);
+
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+function renderFlashcard(card) {
+  return `
+    <div class="flip-scene" style="height:220px">
+      <div class="flip-card" id="flip-card" onclick="flipCard()">
+        <div class="flip-face flip-front">
+          <div class="card-label">Question</div>
+          <div class="card-question">${card.q}</div>
+          <div class="card-hint">Tap to reveal answer</div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="card-label">Answer</div>
+          <div class="card-question">${card.a}</div>
+          ${card.expl ? `<div class="card-explanation">${card.expl}</div>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="grade-row" id="grade-row" style="display:none;margin-top:4px">
+      <button class="btn btn-danger btn-md" onclick="gradeCard('missed')">Missed</button>
+      <button class="btn btn-secondary btn-md" onclick="gradeCard('hard')">Hard</button>
+      <button class="btn btn-primary btn-md" onclick="gradeCard('easy')">Easy ✓</button>
+    </div>`;
+}
+
+function flipCard() {
+  quizFlipped = !quizFlipped;
+  document.getElementById('flip-card').classList.toggle('flipped', quizFlipped);
+  document.getElementById('grade-row').style.display = quizFlipped ? 'flex' : 'none';
+}
+
+function gradeCard(grade) {
+  if (grade === 'easy') quizCorrect++;
+  quizIndex++;
+  renderQuizCard();
+}
+
+function renderMC(card) {
+  const opts = card.options.map(o => `
+    <button class="mc-option" onclick="selectMC(this,'${o.replace(/'/g,"\\'")}','${card.a.replace(/'/g,"\\'")}')">${o}</button>
+  `).join('');
+  return `
+    <div class="card p-5 mb-4">
+      <div class="card-label">Multiple Choice</div>
+      <div class="card-question mt-2">${card.q}</div>
+    </div>
+    <div class="mc-options">${opts}</div>
+    <div id="mc-next" style="display:none;margin-top:12px">
+      ${card.expl ? `<p class="text-sm text-muted mb-3 font-italic">${card.expl}</p>` : ''}
+      <button class="btn btn-primary btn-lg" onclick="nextCard()">Next →</button>
+    </div>`;
+}
+
+function selectMC(btn, selected, correct) {
+  if (mcSelected) return;
+  mcSelected = selected;
+  document.querySelectorAll('.mc-option').forEach(b => {
+    b.disabled = true;
+    const text = b.textContent.trim();
+    if (text === correct) b.classList.add('correct');
+    else if (text === selected && selected !== correct) b.classList.add('wrong');
+    else b.classList.add('dimmed');
+  });
+  if (selected === correct) quizCorrect++;
+  document.getElementById('mc-next').style.display = 'block';
+}
+
+function renderFR(card) {
+  return `
+    <div class="card p-5 mb-4">
+      <div class="card-label">Free Response</div>
+      <div class="card-question mt-2">${card.q}</div>
+    </div>
+    <div class="field"><textarea id="fr-input" rows="4" placeholder="Type your answer here…"></textarea></div>
+    <div id="fr-feedback"></div>
+    <button class="btn btn-primary btn-lg" id="fr-submit-btn" onclick="submitFR('${card.a.replace(/'/g,"\\'")}')" >Submit Answer</button>`;
+}
+
+function submitFR(correctAnswer) {
+  const val = document.getElementById('fr-input').value.trim();
+  if (!val) return;
+  document.getElementById('fr-input').disabled = true;
+  document.getElementById('fr-submit-btn').style.display = 'none';
+  // Simulate grading
+  const passed = val.length > 20;
+  const feedback = passed
+    ? "Great answer! You've captured the key ideas well."
+    : "Good try! The answer covers: " + correctAnswer.substring(0,80) + "…";
+  if (passed) quizCorrect++;
+  document.getElementById('fr-feedback').innerHTML = `
+    <div class="feedback-box ${passed?'feedback-pass':'feedback-fail'} mb-3">
+      <strong>${passed ? '✓ Correct!' : '× Not quite'}</strong><br>${feedback}
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="nextCard()">Next →</button>`;
+}
+
+function nextCard() { quizIndex++; renderQuizCard(); }
+
+function showSessionComplete() {
+  const pct = Math.round(quizCorrect / quizCards.length * 100);
+  document.getElementById('quiz-progress-fill').style.width = '100%';
+  document.getElementById('quiz-counter').textContent = quizCards.length + ' of ' + quizCards.length;
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="session-complete">
+      <div class="session-emoji">${pct>=80?'🎉':pct>=50?'👍':'💪'}</div>
+      <h2 style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px">Session Complete!</h2>
+      <p class="text-muted mb-6">You got ${quizCorrect} of ${quizCards.length} correct (${pct}%)</p>
+      <div class="flex gap-3 justify-center">
+        <button class="btn btn-secondary btn-md" onclick="showScreen('home')">Home</button>
+        <button class="btn btn-primary btn-md" onclick="startQuiz(1)">Study Again</button>
+      </div>
+    </div>`;
+  document.querySelector('.back-link').style.display = 'none';
+}
+
+// ─── IMPORT ──────────────────────────────────────────────────
+let importMode = 'notes';
+function setImportMode(mode, btn) {
+  importMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('import-notes-panel').style.display = mode==='notes' ? 'block' : 'none';
+  document.getElementById('import-pdf-panel').style.display = mode==='pdf' ? 'block' : 'none';
+  document.getElementById('import-topic-panel').style.display = mode==='topic' ? 'block' : 'none';
+}
+
+function simulateGenerate() {
+  const name = document.getElementById('import-topic-name').value.trim() || 'New Topic';
+  showToast('Generating cards for "' + name + '" with Claude…');
+  setTimeout(() => {
+    showToast('✓ 15 cards generated! (Connect backend for real AI)');
+    setTimeout(() => startQuiz(1), 1200);
+  }, 2000);
+}
+
+// ─── EXPLAIN ─────────────────────────────────────────────────
+const EXPLAIN_REPLIES = [
+  "Great question! Think of React Hooks like power-ups for your components. Before hooks, only class components could have memory (state). Hooks give function components the same superpower.\n\nuseState is like a sticky note your component keeps between renders. useEffect is like setting an alarm — 'run this code when something changes.'\n\nDoes that analogy click for you? 😊",
+  "Exactly right! Another way to think about it: the dependency array is the 'trigger list.' An empty [] means 'only trigger on mount,' while [count] means 'trigger whenever count changes.'\n\nAny follow-up questions?",
+  "You've got it! The key insight is that React re-renders are cheap because of the virtual DOM — it only updates the real DOM where things actually changed. Hooks fit into this because they're just function calls that React tracks in order.\n\nWant me to explain the rules of hooks next?",
+];
+let explainReplyIdx = 0;
+
+function openExplain() {
+  if (quizIndex >= quizCards.length) return;
+  const card = quizCards[quizIndex];
+  explainMessages = [];
+  explainReplyIdx = 0;
+  document.getElementById('explain-overlay').classList.add('open');
+  document.getElementById('explain-messages').innerHTML = '';
+  // Simulate streaming first message
+  addExplainMsg('user', 'Please explain: ' + card.q);
+  setTimeout(() => streamExplainReply(EXPLAIN_REPLIES[0]), 400);
+}
+
+function closeExplain() { document.getElementById('explain-overlay').classList.remove('open'); }
+function closeExplainIfBg(e) { if (e.target === document.getElementById('explain-overlay')) closeExplain(); }
+
+function addExplainMsg(role, text) {
+  const wrap = document.getElementById('explain-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.textContent = text;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function streamExplainReply(text) {
+  const div = addExplainMsg('assistant', '');
+  let i = 0;
+  const interval = setInterval(() => {
+    div.textContent += text[i];
+    i++;
+    document.getElementById('explain-messages').scrollTop = 9999;
+    if (i >= text.length) clearInterval(interval);
+  }, 18);
+}
+
+function sendExplain() {
+  const input = document.getElementById('explain-input');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  addExplainMsg('user', val);
+  explainReplyIdx = (explainReplyIdx + 1) % EXPLAIN_REPLIES.length;
+  setTimeout(() => streamExplainReply(EXPLAIN_REPLIES[explainReplyIdx]), 500);
+}
+
+// ─── TOAST ───────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.style.display='none', 3500);
+}
+</script>
+</body>
+</html>
